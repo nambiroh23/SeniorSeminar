@@ -5,10 +5,14 @@ class SeniorSeminar {
   File data = new File("data.csv");
   // String x = scan1.nextLine(); // skip line
   ArrayList<Student> students = new ArrayList<Student>();
-  Student[] stu;
-  Block[] blocks = new Block[5];
+  Student[] stu; // we'll use this for easy changes, then put it back in the ArrayList later
+  Block[] blocks = new Block[5]; // each block consists of the five classes held then
+  int conflicts = 0; // a counter for later
 
   public SeniorSeminar() {
+
+    // **load data**
+    
     try {
       Scanner scan2;
       Scanner scan1 = new Scanner(data);
@@ -30,13 +34,16 @@ class SeniorSeminar {
 
     // System.out.println(students);
 
+    // **put it in the array**
+    
     stu = new Student[students.size()];
 
     for(int i=0; i<stu.length; i++) {
       stu[i] = students.get(i);
     }
 
-    for(int i=0; i<5; i++) {
+    
+    for(int i=0; i<5; i++) { // initialize each block for later use
       blocks[i] = new Block();
     }
     
@@ -46,32 +53,32 @@ class SeniorSeminar {
 
     // **sort based on preferences**
     
-    for(int i = 0; i<5; i++) {
-      for(int q=0; q<stu.length; q++) {
-        for(int j = 0; j<5; j++) {  
-          if(stu[q].choices[j]!=0) {
-            if(blocks[i].classInBlock(stu[q].choices[j])) {
-              if(blocks[i].rooms[blocks[i].findInBlock(stu[q].choices[j])].addStudent()) {
-                stu[q].classes[i] = stu[q].choices[j];
-                stu[q].choices[j] = 0;
-                break;
+    for(int i = 0; i<5; i++) { // for each block
+      for(int q=0; q<stu.length; q++) { // for each student
+        for(int j = 0; j<5; j++) { // for each choice
+          if(stu[q].choices[j]!=0) { // if this choice hasn't been satisfied yet
+            if(blocks[i].classInBlock(stu[q].choices[j])) { // if the class exists already in this block
+              if(blocks[i].rooms[blocks[i].findInBlock(stu[q].choices[j])].addStudent()) { // if we can add a student (b/c capacity), do so
+                stu[q].classes[i] = stu[q].choices[j]; // set that student's class to this choice for this block, since we just gave them that choice
+                stu[q].choices[j] = 0; // this choice has now been satisfied
+                break; // stop going through this student for this block; we'll come back to them next block (:)
               } // close check for space if
             } // close check if class already exists if
             else { // if class does not already exist
-              if(blocks[i].nextAvail()!=-1) {
-                if(countClass(stu[q].choices[j])<2) {
-                  blocks[i].addClass(stu[q].choices[j]);
-                  stu[q].classes[i] = stu[q].choices[j];
-                  stu[q].choices[j] = 0;
-                }
+              if(blocks[i].nextAvail()!=-1) { // if there exists a free classroom this block
+                if(countClass(stu[q].choices[j])<2) { // if there are less than 2 sections of this class so far
+                  blocks[i].addClass(stu[q].choices[j]); // add class to this block
+                  stu[q].classes[i] = stu[q].choices[j]; // give it to the student
+                  stu[q].choices[j] = 0; // that choice has been satisfied
+                } // close check section count if
               } // close if space to add a new class
-            }
+            } // close else (if class does not already exist)
           } // close if choice still unsatisfied
         } // close for each choice
       } // close for each student
     } // close for each block
 
-    // **fill the rest**
+    // **fill the rest** by jist running through
 
     for(int q=0; q<stu.length; q++) {
       for(int i = 0; i<5; i++) {
@@ -86,9 +93,11 @@ class SeniorSeminar {
       }
     }
 
+    // ** count conflicts and assign classrooms to each student object
+    
     for(int i=0; i<stu.length; i++) {
       for(int j = 0; j<5; j++) {
-        // stu[i].classrooms[j] = stu[i].classes[j];
+        if(!stu[i].choseThis(stu[i].classes[j])) conflicts++;
         stu[i].classrooms[j] = blocks[j].findInBlock(stu[i].classes[j]);
       }
       students.set(i,stu[i]);
@@ -96,8 +105,8 @@ class SeniorSeminar {
     
   }
   
-
-  public int countClass(int x) {
+  
+  public int countClass(int x) { // count number of sections of this class over the whole day
     int c = 0;
     for(int i = 0; i<5; i++) {
       if(blocks[i]!=null) {
@@ -111,9 +120,10 @@ class SeniorSeminar {
     return c;
   }
 
-  public void print() {
+  public void print() { // print the "output"
     System.out.println("Here are the class id's for each of the five blocks for each student.");
     System.out.println(students);
+    System.out.println("\n" + conflicts + " \"conflicts\" for " + stu.length + " students");
   }
   
 }

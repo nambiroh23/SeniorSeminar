@@ -6,10 +6,10 @@ class Class {
 
   public Class(int id) {
     this.id = id;
-    studentCount = 1; // we always create a class with one student by the way we have our algorithm set up
+    studentCount = 1; // we always create a class with one student by the way we have our algorithm set up ... see SeniorSeminar
   }
 
-  public boolean addStudent() {
+  public boolean addStudent() { // adds one student if possible and returns true; returns false if not
     if(studentCount == capacity) {
       return false;
     }
